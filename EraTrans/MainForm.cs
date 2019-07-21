@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -12,12 +13,17 @@ namespace Riey.EraTrans
 {
     public partial class MainForm : Form
     {
+		private CommonOpenFileDialog folderBrowser;
         private BinaryFormatter formatter = new BinaryFormatter();
         private Setting setting;
 
         public MainForm(ConfigDic config)
         {
-            setting = new Setting(config);
+			folderBrowser = new CommonOpenFileDialog();
+			folderBrowser.Title = "ERB파일이 들어있는 폴더를 선택해주세요";
+			folderBrowser.IsFolderPicker = true;
+
+			setting = new Setting(config);
             setting.Load();
             InitializeComponent();
             Version v = Assembly.GetExecutingAssembly().GetName().Version;
@@ -124,12 +130,8 @@ namespace Riey.EraTrans
 
         private void 폴더열기버튼_Click(object sender, EventArgs e)
         {
-            folderBrowserDialog1.Description = "ERB파일이 들어있는 폴더를 선택해주세요";
-            folderBrowserDialog1.ShowDialog();
-            if (folderBrowserDialog1.SelectedPath == "")
-                return;
-            var files = Directory.GetFiles(folderBrowserDialog1.SelectedPath, "*", SearchOption.AllDirectories).Where(file => Path.GetExtension(file).ToUpper() == ".ERB").ToArray();
-            Translate(files);
+			if (folderBrowser.ShowDialog() == CommonFileDialogResult.Ok)
+				Translate(Directory.GetFiles(folderBrowser.FileName, "*.ERB", SearchOption.AllDirectories));
         }
     }
 }
